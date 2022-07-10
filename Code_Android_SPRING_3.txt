@@ -1,0 +1,193 @@
+package com.example.jugurthaimineprojetcodebarre;
+
+
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.view.View.OnClickListener;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Set;
+import java.util.UUID;
+
+public class MainActivity extends AppCompatActivity {
+
+    int compte = 0;
+    int comptefr = 0;
+    int comptera = 0;
+    int interfacetestee;
+    BluetoothAdapter mBluetoothAdapter;
+    BluetoothDevice deviceTrouve1;
+    int mState;
+    BluetoothSocket mmSocket;
+    BluetoothDevice mmDevice;
+    InputStream receiveStream;
+    OutputStream sendStream;
+    byte buffer[]= new byte[20];
+    int numBytes;
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+            setContentView(R.layout.activity_main);
+
+
+            TextView compteur = (TextView)findViewById (R.id.compteur);
+        TextView fraise2 = (TextView)findViewById (R.id.fraise2);
+        TextView raisin = (TextView)findViewById (R.id.raisin);
+
+            ImageButton fraise = (ImageButton)findViewById (R.id.imageButton7);
+            ImageButton pomme = findViewById(R.id.imageButton4);
+            ImageButton raison = findViewById(R.id.imageButton8);
+            Button scan = (Button) findViewById(R.id.scanbtn);
+            Button valider = (Button) findViewById(R.id.validerbtn);
+            Button reset = (Button) findViewById(R.id.resetbtn);
+
+            Button connect = (Button) findViewById(R.id.btnconnect);
+            mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+            // Focus
+
+
+            valider.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(android.view.View v) {
+
+                }
+            });
+
+            connect.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String deviceName = "";
+                    String deviceMAC = "";
+                    Set<BluetoothDevice> bondedDevices = mBluetoothAdapter.getBondedDevices();
+                    for (BluetoothDevice device : bondedDevices)
+                    {
+                        deviceMAC = device.getAddress();
+                        if (deviceMAC.equals("00:1C:97:1A:4C:F6"))
+                        {
+                            new Thread(MainActivity.this::connexionAppareil).start();
+                        }
+                    }
+                }
+            });
+
+            scan.setOnClickListener(new OnClickListener() {
+
+            @Override
+            public void onClick(android.view.View v) {
+
+            }
+            });
+
+        raison.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(android.view.View v) {
+                comptera++;
+                raisin.setText("Nombre de raisin :" + comptera);
+            }
+        });
+
+
+            pomme.setOnClickListener(new OnClickListener() {
+
+                @Override
+                public void onClick(android.view.View v) {
+                    compte++;
+                    compteur.setText("Nombre de pomme :" + compte);
+
+
+                }
+
+            });
+
+
+            fraise.setOnClickListener(new OnClickListener() {
+
+                @Override
+                public void onClick(android.view.View v) {
+                    comptefr++;
+                    fraise2.setText("Nombre de fraise :" + comptefr);
+
+                }
+
+            });
+
+             reset.setOnClickListener(new OnClickListener() {
+
+            @Override
+            public void onClick(android.view.View v) {
+
+                comptefr = 0;
+                compte = 0;
+                comptera = 0;
+                fraise2.setText("Nombre de fraise :" + comptefr);
+                compteur.setText("Nombre de pomme :" + compte);
+                raisin.setText("Nombre de raisin :" + comptera);
+
+
+            }
+
+        });
+
+        }
+    void connexionAppareil(){
+        BluetoothSocket tmp = null;
+        try {
+            mmDevice = deviceTrouve1;
+
+
+            if (mmDevice != null) {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                    tmp = mmDevice.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
+
+                    Log.i("marqueur", "device trouvé");
+                }
+            }
+        }
+        catch (IOException e)
+        {
+            Log.i("marqueur","erreur creation mmSocket");
+            return;
+        }
+        mmSocket = tmp;
+        mState = BluetoothAdapter.STATE_CONNECTING;
+
+
+        try {
+
+            mmSocket.connect();
+            Log.i("marqueur","début attente connexion");
+            Thread.sleep(12000);
+            Log.i("marqueur","fin attente connexion - connexion ok");
+        }
+        catch(IOException | InterruptedException e)
+        {
+            Log.e("marqueur",e.getMessage());
+            try
+            {
+                mmSocket.close();
+                Log.i("marqueur","erreur fermeture socket");
+            }
+            catch (IOException e2)
+            {
+                Log.i("marqueur","impossible de fermer le socket");
+            }
+            return;
+        }
+    }
+    }
